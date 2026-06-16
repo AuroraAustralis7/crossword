@@ -1,4 +1,6 @@
 import "./App.css";
+import Hints from "./components/hints"
+import { useState } from 'react'
 
 type answerGridProps = {
   crossWordSize: number; // 2x2? 3x3? 4x4? necessary to create the grid
@@ -12,9 +14,11 @@ type answerGridProps = {
 type appProps = {
   answerGrid: string[][];
   gridProps: answerGridProps;
+  hints: string[];
 };
 
 // checks whether a single word lies entirely within the grid.
+/*
 function withinBounds(
   crossWordSize: number,
   words: string,
@@ -63,7 +67,9 @@ function withinBounds(
 
   return withinBounds;
 }
+  */
 
+/*
 function answerGrid(props: answerGridProps) {
   const answerGrid = Array.from({ length: props.crossWordSize }, () =>
     Array(props.crossWordSize).fill(""),
@@ -105,6 +111,7 @@ function answerGrid(props: answerGridProps) {
   }
   return answerGrid;
 }
+*/
 
 function checkWord(
   word: string,
@@ -203,17 +210,15 @@ function correctWordsGrid(props: appProps, crossword: string[][]) {
 }
 
 function App(props: appProps) {
-  let crosswordGrid = Array.from(
-    { length: props.gridProps.crossWordSize },
-    () => Array(props.gridProps.crossWordSize).fill(""),
-  );
+
+  const [crosswordGrid, setCrosswordGrid] = useState<string[][]>(Array.from({ length: props.gridProps.crossWordSize }, () => Array(props.gridProps.crossWordSize).fill("")));
 
   return (
     <>
-      {crosswordGrid.map((row, rowIndex) => {
+      {crosswordGrid.map((row, rowIndex: number) => {
         return (
           <div style={{ height: 40 }}>
-            {row.map((col, colIndex) => {
+            {row.map((_, colIndex: number) => {
               if (props.answerGrid[rowIndex][colIndex] === "") {
                 return <span className="empty-crossword-cell" />;
               } else {
@@ -225,9 +230,10 @@ function App(props: appProps) {
                     maxLength={1}
                     onChange={(event) => {
                       event.target.value = event.target.value.toUpperCase();
-                      crosswordGrid[rowIndex][colIndex] =
-                        event.target.value.toUpperCase();
-                      let correctGrid = correctWordsGrid(props, crosswordGrid);
+                      const copy = crosswordGrid.map((row) => [...row]);
+                      copy[rowIndex][colIndex] = event.target.value.toUpperCase();
+                        setCrosswordGrid(copy);
+                      let correctGrid = correctWordsGrid(props, copy);
                       for (let r = 0; r < props.gridProps.crossWordSize; r++) {
                         for (
                           let c = 0;
@@ -242,6 +248,14 @@ function App(props: appProps) {
                               input.style.backgroundColor = "lightgreen";
                             }
                           }
+                          else{
+                            const input = document.getElementById(
+                              `cell-${r}-${c}`,
+                            );
+                            if (input !== null) {
+                              input.style.backgroundColor = "white";
+                            }
+                          }
                         }
                       }
                     }}
@@ -252,6 +266,7 @@ function App(props: appProps) {
           </div>
         );
       })}
+      <Hints hintList={props.hints} />
     </>
   );
 }
